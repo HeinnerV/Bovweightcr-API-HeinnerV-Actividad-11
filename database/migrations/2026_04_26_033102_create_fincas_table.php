@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('fincas', function (Blueprint $table) {
             $table->id();
             $table->foreignId('usuario_id')->constrained('users');
+            $table->foreignId('veterinario_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('nombre');
             $table->string('ubicacion');
             $table->decimal('area', 10, 2);

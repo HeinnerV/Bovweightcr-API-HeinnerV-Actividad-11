@@ -45,6 +45,11 @@ class User extends Authenticatable
         return $this->hasMany(Finca::class, 'usuario_id');
     }
 
+    public function fincasAsignadas()
+    {
+        return $this->hasMany(Finca::class, 'veterinario_id');
+    }
+
     public function reportes()
     {
         return $this->hasMany(Reporte::class, 'usuario_id');
