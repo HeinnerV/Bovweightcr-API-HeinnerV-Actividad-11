@@ -35,6 +35,15 @@ class User extends Authenticatable
         return $this->correo;
     }
 
+    /**
+     * Indica a los canales de notificación de Laravel que el correo
+     * del usuario está en el campo 'correo', no en 'email'.
+     */
+    public function routeNotificationForMail(): string
+    {
+        return $this->correo;
+    }
+
     public function tipoUsuario()
     {
         return $this->belongsTo(TipoUsuario::class, 'tipo_id');

@@ -9,6 +9,7 @@ use App\Events\SolicitudAprobada;
 use App\Events\SolicitudRechazada;
 use App\Models\EstadoSolicitud;
 use App\Models\SolicitudRegistro;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -100,24 +101,34 @@ class SolicitudRegistroService
 
     private function aprobar(SolicitudRegistro $solicitud, string $tipoUsuario): SolicitudRegistro
     {
-        $estadoAprobado = EstadoSolicitud::where('nombre', 'Aprobado')->firstOrFail();
-        $solicitud->estado_id = $estadoAprobado->id;
-        $solicitud->motivo_rechazo = null;
-        $this->solicitudes->save($solicitud);
+        return DB::transaction(function () use ($solicitud, $tipoUsuario) {
+            // Bloqueo pesimista: impide que dos requests concurrentes aprueben
+            // la misma solicitud y envíen credenciales dos veces.
+            $solicitud = SolicitudRegistro::lockForUpdate()->findOrFail($solicitud->id);
 
-        // FACTORY: crea el usuario con el tipo indicado por el admin
-        $contrasenaPlana = Str::random(12);
+            if ($solicitud->estado->nombre !== 'Pendiente') {
+                throw new UnprocessableEntityHttpException('La solicitud ya fue revisada.');
+            }
 
-        $usuario = $this->userFactory->make($tipoUsuario, [
-            'nombre' => $solicitud->nombre.' '.$solicitud->apellidos,
-            'correo' => $solicitud->correo,
-            'contrasena' => $contrasenaPlana,
-        ]);
+            $estadoAprobado = EstadoSolicitud::where('nombre', 'Aprobado')->firstOrFail();
+            $solicitud->estado_id = $estadoAprobado->id;
+            $solicitud->motivo_rechazo = null;
+            $this->solicitudes->save($solicitud);
 
-        // OBSERVER: notifica aprobación enviando credenciales por correo
-        SolicitudAprobada::dispatch($solicitud, $usuario, $contrasenaPlana);
+            // FACTORY: crea el usuario con el tipo indicado por el admin
+            $contrasenaPlana = Str::random(12);
 
-        return $solicitud->fresh('estado');
+            $usuario = $this->userFactory->make($tipoUsuario, [
+                'nombre' => $solicitud->nombre.' '.$solicitud->apellidos,
+                'correo' => $solicitud->correo,
+                'contrasena' => $contrasenaPlana,
+            ]);
+
+            // OBSERVER: notifica aprobación enviando credenciales por correo (una sola vez)
+            SolicitudAprobada::dispatch($solicitud, $usuario, $contrasenaPlana);
+
+            return $solicitud->fresh('estado');
+        });
     }
 
     private function rechazar(SolicitudRegistro $solicitud, string $motivo): SolicitudRegistro

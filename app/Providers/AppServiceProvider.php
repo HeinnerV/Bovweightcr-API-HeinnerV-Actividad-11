@@ -58,13 +58,14 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(UsuarioCreado::class, NotificarBienvenidaUsuario::class);
 
         // Como el proyecto es API-only no existe la ruta nombrada 'password.reset'.
-        // Se genera la URL apuntando al frontend configurado en FRONTEND_URL,
-        // o a APP_URL como fallback durante el desarrollo.
+        // La URL apunta al frontend configurado en FRONTEND_URL.
+        // Parámetros como query params para que el router SPA los lea con route.query.
         ResetPassword::createUrlUsing(function ($notifiable, string $token) {
             $base = rtrim(config('app.frontend_url', config('app.url')), '/');
 
-            return $base.'/reset-password/'.$token
-                .'?correo='.urlencode($notifiable->getEmailForPasswordReset());
+            return $base.'/reset-password'
+                .'?token='.urlencode($token)
+                .'&email='.urlencode($notifiable->getEmailForPasswordReset());
         });
     }
 }
