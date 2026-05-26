@@ -8,7 +8,7 @@ class Ganado extends Model
 {
     protected $fillable = [
         'finca_id', 'estado_salud_id', 'estado_comercial_id',
-        'arete', 'sexo', 'raza', 'imagen'
+        'arete', 'nombre', 'sexo', 'raza', 'imagen'
     ];
 
     public function finca()

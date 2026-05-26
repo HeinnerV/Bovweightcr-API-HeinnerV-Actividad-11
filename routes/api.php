@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\UsuarioController;
 use App\Http\Middleware\EsAdministrador;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\EstimacionPesoController;
+use App\Http\Controllers\Api\GanadoController;
+use App\Http\Controllers\Api\CatalogoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,10 +21,19 @@ use App\Http\Controllers\Api\EstimacionPesoController;
 |
 */
 
-// Rutas de fincas (CRUD)
+// Rutas de fincas y ganado (CRUD)
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('fincas', FincaController::class);
+
+    Route::get('ganado', [GanadoController::class, 'index']);
+    Route::post('ganado', [GanadoController::class, 'store']);
+    Route::get('ganado/{id}', [GanadoController::class, 'show']);
+    Route::put('ganado/{id}', [GanadoController::class, 'update']);
+    Route::delete('ganado/{id}', [GanadoController::class, 'destroy']);
+
+    Route::get('catalogos/estados-salud', [CatalogoController::class, 'estadosSalud']);
+    Route::get('catalogos/estados-comerciales', [CatalogoController::class, 'estadosComerciales']);
 
 });
 

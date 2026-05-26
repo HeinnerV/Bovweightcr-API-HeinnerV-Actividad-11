@@ -9,12 +9,16 @@ class EstadoComercialGanadoSeeder extends Seeder
 {
     public function run(): void
     {
-        $estados = ['Vendido', 'En venta', 'En propiedad'];
+        \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        EstadoComercialGanado::truncate();
+        \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        $estados = ['Disponible', 'Reservado', 'En negociación', 'Vendido', 'No disponible'];
 
         foreach ($estados as $estado) {
-            EstadoComercialGanado::firstOrCreate(['nombre' => $estado]);
+            EstadoComercialGanado::create(['nombre' => $estado]);
         }
 
-        $this->command->info('  ✔ EstadoComercialGanado: Vendido, En venta, En propiedad');
+        $this->command->info('  ✔ EstadoComercialGanado: Disponible, Reservado, En negociación, Vendido, No disponible');
     }
 }
