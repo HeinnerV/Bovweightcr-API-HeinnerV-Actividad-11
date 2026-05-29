@@ -33,3 +33,4 @@ class IndexTest extends TestCase
         $this->getJson('/api/ganado')->assertStatus(401);
     }
 }
+//Cambios realizados:
